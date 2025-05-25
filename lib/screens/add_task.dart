@@ -33,7 +33,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         title: Stack(
           alignment: Alignment.centerLeft,
           children: [
-            // Make the glow fill the available space and center with the text
             Positioned.fill(
               child: Center(
                 child: _FullTextGlow(
@@ -188,7 +187,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 }
 
-// New natural glow widget (same as in home_screen.dart)
 class _NaturalGlow extends StatefulWidget {
   final double width;
   final double height;
@@ -300,14 +298,12 @@ class _FullTextGlowState extends State<_FullTextGlow>
 
   @override
   Widget build(BuildContext context) {
-    // Stack blurred text behind the main text for a full, brighter glow effect
     return AnimatedBuilder(
       animation: _anim,
       builder: (context, child) {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Brighter Glow layer 1
             Text(
               widget.text,
               textAlign: TextAlign.center,
@@ -322,7 +318,6 @@ class _FullTextGlowState extends State<_FullTextGlow>
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
               ),
             ),
-            // Brighter Glow layer 2
             Text(
               widget.text,
               textAlign: TextAlign.center,

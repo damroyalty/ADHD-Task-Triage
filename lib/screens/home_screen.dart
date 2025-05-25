@@ -20,7 +20,6 @@ class HomeScreen extends StatelessWidget {
         title: Stack(
           alignment: Alignment.centerLeft,
           children: [
-            // Make the glow fill the available space and center with the text
             Positioned.fill(
               child: Center(
                 child: _FullTextGlow(
@@ -62,7 +61,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Must-Do Section (Red)
+          // must-do section
           PrioritySection(
             title: 'MUST-DO (1-3 MAX)',
             subtitle: 'What will wreck your future if not done today?',
@@ -70,7 +69,7 @@ class HomeScreen extends StatelessWidget {
             tasks: context.watch<TaskProvider>().mustDoTasks,
           ),
 
-          // Could-Do Section (Blue)
+          // could-do section
           PrioritySection(
             title: 'COULD-DO',
             subtitle: 'Nice to have but no disaster if skipped',
@@ -78,7 +77,7 @@ class HomeScreen extends StatelessWidget {
             tasks: context.watch<TaskProvider>().couldDoTasks,
           ),
 
-          // Completed Section (Green)
+          // completed section
           PrioritySection(
             title: 'DONE',
             subtitle: 'Celebrate your wins!',
@@ -195,7 +194,6 @@ class PrioritySection extends StatelessWidget {
   }
 }
 
-// New natural glow widget
 class _NaturalGlow extends StatefulWidget {
   final double width;
   final double height;
@@ -235,7 +233,6 @@ class _NaturalGlowState extends State<_NaturalGlow>
 
   @override
   Widget build(BuildContext context) {
-    // Use a radial gradient for a soft, natural glow
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _anim,
@@ -244,7 +241,6 @@ class _NaturalGlowState extends State<_NaturalGlow>
             width: widget.width,
             height: widget.height,
             decoration: BoxDecoration(
-              // No borderRadius, just a radial gradient for a natural glow
               gradient: RadialGradient(
                 center: Alignment.centerLeft,
                 radius: 1.1,
@@ -309,14 +305,12 @@ class _FullTextGlowState extends State<_FullTextGlow>
 
   @override
   Widget build(BuildContext context) {
-    // Stack blurred text behind the main text for a full, brighter glow effect
     return AnimatedBuilder(
       animation: _anim,
       builder: (context, child) {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Brighter Glow layer 1
             Text(
               widget.text,
               textAlign: TextAlign.center,
@@ -331,7 +325,6 @@ class _FullTextGlowState extends State<_FullTextGlow>
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
               ),
             ),
-            // Brighter Glow layer 2
             Text(
               widget.text,
               textAlign: TextAlign.center,

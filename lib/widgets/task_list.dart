@@ -84,7 +84,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
 
     _removeParticleOverlay();
 
-    // Adjust the position so the particles are centered over the checkbox
     _particleOverlay = OverlayEntry(
       builder: (context) {
         return Positioned(
@@ -288,7 +287,7 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                             child: Center(
                               child: Listener(
                                 onPointerDown: (event) {
-                                  // Use PointerDeviceKind from flutter/gestures.dart
+                                  // pointerdevice
                                   if (event.kind == PointerDeviceKind.mouse ||
                                       event.kind == PointerDeviceKind.touch) {
                                     _showParticleAnimationAtPosition(
@@ -300,7 +299,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                                 child: Checkbox(
                                   value: task.isCompleted,
                                   onChanged: (value) {
-                                    // fallback for keyboard/other triggers
                                     if (value == true && !task.isCompleted) {
                                       _playCelebrate(index);
                                     }
@@ -346,10 +344,10 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                                       : TextDecoration.none,
                                   decorationThickness: task.isCompleted
                                       ? 2.5
-                                      : 1.0, // Thicker line for done
+                                      : 1.0,
                                   decorationColor: task.isCompleted
                                       ? widget.color.withOpacity(0.85)
-                                      : null, // Use tile color for line
+                                      : null,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -415,7 +413,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
   }
 }
 
-// Overlay particle burst animation
 class _ParticleBurstOverlay extends StatefulWidget {
   final Color color;
   final VoidCallback onCompleted;
@@ -489,7 +486,6 @@ class _ParticleBurstOverlayState extends State<_ParticleBurstOverlay>
   }
 }
 
-// Modern visual animation for MUST-DO completion
 class _ModernCelebrate extends StatefulWidget {
   @override
   State<_ModernCelebrate> createState() => _ModernCelebrateState();
@@ -518,7 +514,6 @@ class _ModernCelebrateState extends State<_ModernCelebrate>
 
   @override
   Widget build(BuildContext context) {
-    // Modern: circle pulse, check, and sparkles
     return AnimatedBuilder(
       animation: _anim,
       builder: (context, child) {
@@ -526,7 +521,6 @@ class _ModernCelebrateState extends State<_ModernCelebrate>
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Pulse circle
             Opacity(
               opacity: (1 - t).clamp(0.0, 1.0),
               child: Container(
@@ -538,7 +532,6 @@ class _ModernCelebrateState extends State<_ModernCelebrate>
                 ),
               ),
             ),
-            // Checkmark
             Opacity(
               opacity: t,
               child: Icon(
@@ -547,7 +540,6 @@ class _ModernCelebrateState extends State<_ModernCelebrate>
                 size: 36 + 8 * t,
               ),
             ),
-            // Sparkles
             ...List.generate(8, (i) {
               final angle = 2 * pi * i / 8;
               final radius = 24.0 * t;

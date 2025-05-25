@@ -8,7 +8,7 @@ class Task {
   final TaskPriority priority;
   bool isCompleted;
   final DateTime createdAt;
-  final String? description; // <-- Add this
+  final String? description;
 
   Task({
     String? id,
@@ -16,7 +16,7 @@ class Task {
     required this.priority,
     this.isCompleted = false,
     DateTime? createdAt,
-    this.description, // <-- Add this
+    this.description,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
 
@@ -24,7 +24,7 @@ class Task {
     String? title,
     TaskPriority? priority,
     bool? isCompleted,
-    String? description, // <-- Add this
+    String? description,
   }) {
     return Task(
       id: id,
@@ -32,7 +32,7 @@ class Task {
       priority: priority ?? this.priority,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt,
-      description: description ?? this.description, // <-- Add this
+      description: description ?? this.description,
     );
   }
 }
