@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
           // must-do section
           PrioritySection(
             title: 'MUST-DO (1-3 MAX)',
-            subtitle: 'What will wreck your future if not done today?',
+            subtitle: 'what will wreck your future if not done today?',
             color: const Color.fromARGB(255, 255, 72, 69),
             tasks: context.watch<TaskProvider>().mustDoTasks,
           ),
@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
           // could-do section
           PrioritySection(
             title: 'COULD-DO',
-            subtitle: 'Nice to have but no disaster if skipped',
+            subtitle: 'could be done, but no disaster if skipped',
             color: const Color.fromARGB(255, 42, 155, 247),
             tasks: context.watch<TaskProvider>().couldDoTasks,
           ),
@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
           // completed section
           PrioritySection(
             title: 'DONE',
-            subtitle: 'Celebrate your wins!',
+            subtitle: 'dont get complacent just because you completed a few tasks!',
             color: const Color.fromARGB(255, 77, 168, 82),
             tasks: context.watch<TaskProvider>().completedTasks,
           ),
