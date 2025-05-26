@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="adhd_task_triage"
+        android:label="ADHD Task Triage"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

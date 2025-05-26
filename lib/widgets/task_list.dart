@@ -308,11 +308,11 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                                     ).toggleTaskCompletion(task.id);
                                   },
                                   fillColor:
-                                      MaterialStateProperty.resolveWith<Color>((
+                                      WidgetStateProperty.resolveWith<Color>((
                                         states,
                                       ) {
                                         if (states.contains(
-                                          MaterialState.selected,
+                                          WidgetState.selected,
                                         )) {
                                           return widget.color;
                                         }

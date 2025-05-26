@@ -3,8 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/screens/home_screen.dart';
 import 'package:adhd_task_triage/models/task.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox(
+    'myBox',
+  ); // You can change 'myBox' to any box name you want
   runApp(
     ChangeNotifierProvider(
       create: (context) => TaskProvider(),

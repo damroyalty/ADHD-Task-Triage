@@ -65,7 +65,7 @@ class HomeScreen extends StatelessWidget {
           PrioritySection(
             title: 'MUST-DO (1-3 MAX)',
             subtitle: 'What will wreck your future if not done today?',
-            color: const Color.fromARGB(255, 255, 72, 69)!,
+            color: const Color.fromARGB(255, 255, 72, 69),
             tasks: context.watch<TaskProvider>().mustDoTasks,
           ),
 
@@ -73,7 +73,7 @@ class HomeScreen extends StatelessWidget {
           PrioritySection(
             title: 'COULD-DO',
             subtitle: 'Nice to have but no disaster if skipped',
-            color: const Color.fromARGB(255, 42, 155, 247)!,
+            color: const Color.fromARGB(255, 42, 155, 247),
             tasks: context.watch<TaskProvider>().couldDoTasks,
           ),
 
@@ -81,7 +81,7 @@ class HomeScreen extends StatelessWidget {
           PrioritySection(
             title: 'DONE',
             subtitle: 'Celebrate your wins!',
-            color: const Color.fromARGB(255, 77, 168, 82)!,
+            color: const Color.fromARGB(255, 77, 168, 82),
             tasks: context.watch<TaskProvider>().completedTasks,
           ),
         ],
@@ -93,9 +93,9 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const AddTaskScreen()),
           );
         },
-        child: const Icon(Icons.add),
         backgroundColor: const Color(0xFF23272F),
         foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }
