@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/screens/home_screen.dart';
 import 'package:adhd_task_triage/models/task.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  await Hive.openBox(
-    'myBox',
-  ); // You can change 'myBox' to any box name you want
+
+  // Initialize Hive with the correct directory for all platforms
+  Directory appDocDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocDir.path);
+
+  // Register adapters
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(TaskPriorityAdapter());
+
+  // Open the tasks box
+  await Hive.openBox<Task>('tasks');
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => TaskProvider(),
@@ -47,7 +57,18 @@ class MyApp extends StatelessWidget {
 }
 
 class TaskProvider with ChangeNotifier {
-  final List<Task> _tasks = [];
+  late final Box<Task> _taskBox;
+  List<Task> _tasks = [];
+
+  TaskProvider() {
+    _taskBox = Hive.box<Task>('tasks');
+    _loadTasks();
+  }
+
+  void _loadTasks() {
+    _tasks = _taskBox.values.toList();
+    notifyListeners();
+  }
 
   List<Task> get mustDoTasks => _tasks
       .where(
@@ -65,33 +86,40 @@ class TaskProvider with ChangeNotifier {
       _tasks.where((task) => task.isCompleted).toList();
 
   void addTask(Task task) {
-    _tasks.add(task);
-    notifyListeners();
+    _taskBox.add(task);
+    _loadTasks();
   }
 
   void editTask(String id, String newTitle, String? newDescription) {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(
+      final task = _tasks[index];
+      final newTask = task.copyWith(
         title: newTitle,
         description: newDescription,
       );
-      notifyListeners();
+      _taskBox.putAt(index, newTask);
+      _loadTasks();
     }
   }
 
   void toggleTaskCompletion(String id) {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index != -1) {
-      _tasks[index] = _tasks[index].copyWith(
-        isCompleted: !_tasks[index].isCompleted,
+      final task = _tasks[index];
+      final newTask = task.copyWith(
+        isCompleted: !task.isCompleted,
       );
-      notifyListeners();
+      _taskBox.putAt(index, newTask);
+      _loadTasks();
     }
   }
 
   void deleteTask(String id) {
-    _tasks.removeWhere((task) => task.id == id);
-    notifyListeners();
+    final index = _tasks.indexWhere((task) => task.id == id);
+    if (index != -1) {
+      _taskBox.deleteAt(index);
+      _loadTasks();
+    }
   }
 }

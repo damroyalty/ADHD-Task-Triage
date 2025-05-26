@@ -1,13 +1,34 @@
 import 'package:uuid/uuid.dart';
+import 'package:hive/hive.dart';
 
-enum TaskPriority { mustDo, couldDo }
+part 'task.g.dart';
 
+@HiveType(typeId: 0)
+enum TaskPriority {
+  @HiveField(0)
+  mustDo,
+  @HiveField(1)
+  couldDo
+}
+
+@HiveType(typeId: 1)
 class Task {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String title;
+  
+  @HiveField(2)
   final TaskPriority priority;
+  
+  @HiveField(3)
   bool isCompleted;
+  
+  @HiveField(4)
   final DateTime createdAt;
+  
+  @HiveField(5)
   final String? description;
 
   Task({
