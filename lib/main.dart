@@ -10,15 +10,12 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive with the correct directory for all platforms
   Directory appDocDir = await getApplicationDocumentsDirectory();
   await Hive.initFlutter(appDocDir.path);
 
-  // Register adapters
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(TaskPriorityAdapter());
 
-  // Open the tasks box
   await Hive.openBox<Task>('tasks');
 
   runApp(
@@ -107,9 +104,7 @@ class TaskProvider with ChangeNotifier {
     final index = _tasks.indexWhere((task) => task.id == id);
     if (index != -1) {
       final task = _tasks[index];
-      final newTask = task.copyWith(
-        isCompleted: !task.isCompleted,
-      );
+      final newTask = task.copyWith(isCompleted: !task.isCompleted);
       _taskBox.putAt(index, newTask);
       _loadTasks();
     }

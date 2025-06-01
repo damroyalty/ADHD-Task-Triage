@@ -9,8 +9,18 @@ import 'package:adhd_task_triage/main.dart';
 class TaskList extends StatefulWidget {
   final List<Task> tasks;
   final Color color;
+  final void Function(Task)? onTaskTap;
+  final bool reorderable;
+  final void Function(int oldIndex, int newIndex)? onReorder;
 
-  const TaskList({super.key, required this.tasks, required this.color});
+  const TaskList({
+    super.key,
+    required this.tasks,
+    required this.color,
+    this.onTaskTap,
+    this.reorderable = false,
+    this.onReorder,
+  });
 
   @override
   State<TaskList> createState() => _TaskListState();
@@ -20,8 +30,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
   late List<AnimationController> _controllers;
   late List<Animation<double>> _animations;
   late List<bool> _showCelebration;
-  late List<GlobalKey> _tileKeys;
-  late List<GlobalKey> _checkboxKeys;
   OverlayEntry? _particleOverlay;
 
   @override
@@ -46,8 +54,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
         )
         .toList();
     _showCelebration = List.filled(widget.tasks.length, false);
-    _tileKeys = List.generate(widget.tasks.length, (_) => GlobalKey());
-    _checkboxKeys = List.generate(widget.tasks.length, (_) => GlobalKey());
   }
 
   @override
@@ -73,32 +79,6 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
   void _removeParticleOverlay() {
     _particleOverlay?.remove();
     _particleOverlay = null;
-  }
-
-  void _showParticleAnimationAt(GlobalKey key, Color color) {
-    final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-    final overlay = Overlay.of(context);
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-
-    _removeParticleOverlay();
-
-    _particleOverlay = OverlayEntry(
-      builder: (context) {
-        return Positioned(
-          left: position.dx + size.width / 2 - 24,
-          top: position.dy + size.height / 2 - 24,
-          child: IgnorePointer(
-            child: _ParticleBurstOverlay(
-              color: color,
-              onCompleted: _removeParticleOverlay,
-            ),
-          ),
-        );
-      },
-    );
-    overlay.insert(_particleOverlay!);
   }
 
   void _showParticleAnimationAtPosition(Offset globalPosition, Color color) {
@@ -159,41 +139,55 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF23272F),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
           title: const Text('Edit Task', style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.cyanAccent),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.cyanAccent),
+          content: SizedBox(
+            width: 350,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Title',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: const Color(0xFF23272F),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.cyanAccent, width: 1.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.cyanAccent, width: 2.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-                maxLines: 2,
-              ),
-            ],
+                const SizedBox(height: 18),
+                TextField(
+                  controller: descController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Description (optional)',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    filled: true,
+                    fillColor: const Color(0xFF23272F),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.cyanAccent, width: 1.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.cyanAccent, width: 2.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  maxLines: 5,
+                  minLines: 3,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -224,6 +218,175 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildTaskItem(BuildContext context, Task task, int index) {
+    return Stack(
+      key: ValueKey(task.id),
+      children: [
+        AnimatedBuilder(
+          animation: _animations[index],
+          builder: (context, child) {
+            final isAnimating = _controllers[index].isAnimating;
+            return Transform.scale(
+              scale: isAnimating ? _animations[index].value : 1.0,
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.color.withOpacity(0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: widget.color.withOpacity(0.25),
+                    width: 1.2,
+                  ),
+                ),
+                child: ListTile(
+                  dense: true,
+                  minVerticalPadding: 0,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 2,
+                  ),
+                  horizontalTitleGap: 8,
+                  visualDensity: const VisualDensity(
+                    horizontal: 0,
+                    vertical: -4,
+                  ),
+                  tileColor: Colors.transparent,
+                  leading: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: Center(
+                      child: Listener(
+                        onPointerDown: (event) {
+                          if (event.kind == PointerDeviceKind.mouse ||
+                              event.kind == PointerDeviceKind.touch) {
+                            _showParticleAnimationAtPosition(
+                              event.position,
+                              widget.color,
+                            );
+                          }
+                        },
+                        child: Checkbox(
+                          value: task.isCompleted,
+                          onChanged: (value) {
+                            if (value == true && !task.isCompleted) {
+                              _playCelebrate(index);
+                            }
+                            Provider.of<TaskProvider>(
+                              context,
+                              listen: false,
+                            ).toggleTaskCompletion(task.id);
+                          },
+                          fillColor:
+                              WidgetStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return widget.color;
+                            }
+                            return Colors.white24;
+                          }),
+                          checkColor: Colors.white,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: const VisualDensity(
+                            horizontal: 0,
+                            vertical: -4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        task.title,
+                        style: GoogleFonts.montserrat(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          decoration: task.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          decorationThickness:
+                              task.isCompleted ? 2.5 : 1.0,
+                          decorationColor: task.isCompleted
+                              ? widget.color.withOpacity(0.85)
+                              : null,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if ((task.description ?? "").isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1.0),
+                          child: Text(
+                            task.description!,
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white54,
+                              fontSize: 11,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (_showCelebration[index])
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: _ModernCelebrate(),
+                        ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.cyanAccent,
+                          size: 20,
+                        ),
+                        tooltip: 'Edit',
+                        onPressed: () => _showEditDialog(task),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: widget.color,
+                          size: 20,
+                        ),
+                        tooltip: 'Delete',
+                        onPressed: () {
+                          Provider.of<TaskProvider>(
+                            context,
+                            listen: false,
+                          ).deleteTask(task.id);
+                        },
+                      ),
+                      if (widget.reorderable)
+                        const Icon(
+                          Icons.drag_handle,
+                          color: Colors.white54,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                  onTap: () => widget.onTaskTap?.call(task),
+                ), // ListTile
+              ), // Container
+            ); // Transform.scale
+          }, // builder
+        ), // AnimatedBuilder
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.tasks.isEmpty) {
@@ -235,180 +398,30 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
       );
     }
 
-    return Stack(
-      children: [
-        ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: widget.tasks.length,
-          itemBuilder: (context, index) {
-            final task = widget.tasks[index];
-            return Stack(
-              children: [
-                AnimatedBuilder(
-                  animation: _animations[index],
-                  builder: (context, child) {
-                    final isAnimating = _controllers[index].isAnimating;
-                    return Transform.scale(
-                      scale: isAnimating ? _animations[index].value : 1.0,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.07),
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: widget.color.withOpacity(0.12),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: widget.color.withOpacity(0.25),
-                            width: 1.2,
-                          ),
-                        ),
-                        child: ListTile(
-                          key: _tileKeys[index],
-                          dense: true,
-                          minVerticalPadding: 0,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 2,
-                          ),
-                          horizontalTitleGap: 8,
-                          visualDensity: const VisualDensity(
-                            horizontal: 0,
-                            vertical: -4,
-                          ),
-                          tileColor: Colors.transparent,
-                          leading: SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: Center(
-                              child: Listener(
-                                onPointerDown: (event) {
-                                  // pointerdevice
-                                  if (event.kind == PointerDeviceKind.mouse ||
-                                      event.kind == PointerDeviceKind.touch) {
-                                    _showParticleAnimationAtPosition(
-                                      event.position,
-                                      widget.color,
-                                    );
-                                  }
-                                },
-                                child: Checkbox(
-                                  value: task.isCompleted,
-                                  onChanged: (value) {
-                                    if (value == true && !task.isCompleted) {
-                                      _playCelebrate(index);
-                                    }
-                                    Provider.of<TaskProvider>(
-                                      context,
-                                      listen: false,
-                                    ).toggleTaskCompletion(task.id);
-                                  },
-                                  fillColor:
-                                      WidgetStateProperty.resolveWith<Color>((
-                                        states,
-                                      ) {
-                                        if (states.contains(
-                                          WidgetState.selected,
-                                        )) {
-                                          return widget.color;
-                                        }
-                                        return Colors.white24;
-                                      }),
-                                  checkColor: Colors.white,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  visualDensity: const VisualDensity(
-                                    horizontal: 0,
-                                    vertical: -4,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                task.title,
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  decoration: task.isCompleted
-                                      ? TextDecoration.lineThrough
-                                      : TextDecoration.none,
-                                  decorationThickness: task.isCompleted
-                                      ? 2.5
-                                      : 1.0,
-                                  decorationColor: task.isCompleted
-                                      ? widget.color.withOpacity(0.85)
-                                      : null,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if ((task.description ?? "").isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 1.0),
-                                  child: Text(
-                                    task.description!,
-                                    style: GoogleFonts.montserrat(
-                                      color: Colors.white54,
-                                      fontSize: 11,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              if (_showCelebration[index])
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2.0),
-                                  child: _ModernCelebrate(),
-                                ),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.cyanAccent,
-                                  size: 20,
-                                ),
-                                tooltip: 'Edit',
-                                onPressed: () => _showEditDialog(task),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  color: widget.color,
-                                  size: 20,
-                                ),
-                                tooltip: 'Delete',
-                                onPressed: () {
-                                  Provider.of<TaskProvider>(
-                                    context,
-                                    listen: false,
-                                  ).deleteTask(task.id);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
-        ),
-      ],
+    if (widget.reorderable) {
+      return ReorderableListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: widget.tasks.length,
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) newIndex--;
+          setState(() {
+            final task = widget.tasks.removeAt(oldIndex);
+            widget.tasks.insert(newIndex, task);
+          });
+          if (widget.onReorder != null) {
+            widget.onReorder!(oldIndex, newIndex);
+          }
+        },
+        itemBuilder: (context, index) =>
+            _buildTaskItem(context, widget.tasks[index], index),
+      );
+    }
+
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: widget.tasks.length,
+      itemBuilder: (context, index) =>
+          _buildTaskItem(context, widget.tasks[index], index),
     );
   }
 }

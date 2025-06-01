@@ -6,16 +6,188 @@ import 'add_task.dart';
 import 'package:adhd_task_triage/main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'section_tasks_screen.dart';
+import 'dart:math';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  void _showTaskInfoDialog(BuildContext context, Task task, Color color) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: color.withOpacity(0.82),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                task.title,
+                style: GoogleFonts.baloo2(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (task.description != null && task.description!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Text(
+                    task.description!,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSupportPopup(BuildContext context) {
+    final links = [
+      {
+        'label': 'PayPal',
+        'url': 'https://paypal.me/damroyaltyxxii',
+        'icon': Icons.attach_money,
+      },
+      {
+        'label': 'Instagram',
+        'url': 'https://www.instagram.com/damroyalty',
+        'icon': Icons.camera_alt,
+      },
+      {
+        'label': 'X/Twitter',
+        'url': 'https://www.x.com/damroyalty',
+        'icon': Icons.alternate_email,
+      },
+      {
+        'label': 'GitHub',
+        'url': 'https://www.github.com/damroyalty',
+        'icon': Icons.code,
+      },
+      {
+        'label': 'Linktree',
+        'url': 'https://linktr.ee/damroyalty',
+        'icon': Icons.link,
+      },
+      {
+        'label': 'Twitch',
+        'url': 'https://www.twitch.tv/devroyalty',
+        'icon': Icons.videogame_asset,
+      },
+      {
+        'label': 'Discord',
+        'url': 'https://discord.gg/kDs2mmQwwS',
+        'icon': Icons.forum,
+      },
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF23272F).withOpacity(0.95),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Support & Socials',
+                style: GoogleFonts.baloo2(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 18,
+                runSpacing: 12,
+                children: links.map((link) {
+                  return IconButton(
+                    icon: Icon(
+                      link['icon'] as IconData,
+                      color: Colors.cyanAccent,
+                      size: 32,
+                    ),
+                    tooltip: link['label'] as String,
+                    onPressed: () async {
+                      final url = Uri.parse(link['url'] as String);
+                      try {
+                        // For Android, always use externalApplication mode
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Could not open link')),
+                        );
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Thank you for your support!',
+                style: GoogleFonts.montserrat(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Change backgroundColor to match your app's dark background
       backgroundColor: const Color(0xFF181A20),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF23272F),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         foregroundColor: Colors.white,
         title: Stack(
           alignment: Alignment.centerLeft,
@@ -59,53 +231,117 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // must-do section
-          PrioritySection(
-            title: 'MUST-DO (1-3 MAX)',
-            subtitle: 'what will wreck your future if not done today?',
-            color: const Color.fromARGB(255, 255, 72, 69),
-            tasks: context.watch<TaskProvider>().mustDoTasks,
-          ),
-
-          // could-do section
-          PrioritySection(
-            title: 'COULD-DO',
-            subtitle: 'could be done, but no disaster if skipped',
-            color: const Color.fromARGB(255, 42, 155, 247),
-            tasks: context.watch<TaskProvider>().couldDoTasks,
-          ),
-
-          // completed section
-          PrioritySection(
-            title: 'DONE',
-            subtitle: 'dont get complacent just because you completed a few tasks!',
-            color: const Color.fromARGB(255, 77, 168, 82),
-            tasks: context.watch<TaskProvider>().completedTasks,
+          const _AnimatedADHDBackground(),
+          SafeArea(
+            child: Column(
+              children: [
+                PrioritySection(
+                  title: 'MUST-DO (1-3 MAX)',
+                  subtitle: 'what will wreck your future if not done today?',
+                  color: const Color.fromARGB(255, 255, 72, 69),
+                  tasks: context.watch<TaskProvider>().mustDoTasks,
+                  onTaskTap: (task) => _showTaskInfoDialog(
+                    context,
+                    task,
+                    const Color.fromARGB(255, 255, 72, 69),
+                  ),
+                  sectionNav: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SectionTasksScreen(
+                          title: 'MUST-DO',
+                          color: const Color.fromARGB(255, 255, 72, 69),
+                          tasks: context.read<TaskProvider>().mustDoTasks,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                PrioritySection(
+                  title: 'COULD-DO',
+                  subtitle: 'could be done, but no disaster if skipped',
+                  color: const Color.fromARGB(255, 42, 155, 247),
+                  tasks: context.watch<TaskProvider>().couldDoTasks,
+                  onTaskTap: (task) => _showTaskInfoDialog(
+                    context,
+                    task,
+                    const Color.fromARGB(255, 42, 155, 247),
+                  ),
+                  sectionNav: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SectionTasksScreen(
+                          title: 'COULD-DO',
+                          color: const Color.fromARGB(255, 42, 155, 247),
+                          tasks: context.read<TaskProvider>().couldDoTasks,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                PrioritySection(
+                  title: 'DONE',
+                  subtitle:
+                      'dont get complacent just because you completed a few tasks!',
+                  color: const Color.fromARGB(255, 77, 168, 82),
+                  tasks: context.watch<TaskProvider>().completedTasks,
+                  onTaskTap: (task) => _showTaskInfoDialog(
+                    context,
+                    task,
+                    const Color.fromARGB(255, 77, 168, 82),
+                  ),
+                ),
+                // Add footer with support/social icons
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8, top: 4),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.favorite,
+                      color: Colors.pinkAccent,
+                      size: 32,
+                    ),
+                    tooltip: 'Support & Socials',
+                    onPressed: () => _showSupportPopup(context),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddTaskScreen()),
-          );
-        },
-        backgroundColor: const Color(0xFF23272F),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 1.0, right: 5.0), // Align with socials heart
+        child: SizedBox(
+          width: 44, // Make FAB smaller
+          height: 44,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddTaskScreen()),
+              );
+            },
+            backgroundColor: const Color(0xFF23272F),
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add, size: 24), // Smaller icon
+          ),
+        ),
       ),
     );
   }
 }
 
-class PrioritySection extends StatelessWidget {
+class PrioritySection extends StatefulWidget {
   final String title;
   final String subtitle;
   final Color color;
   final List<Task> tasks;
+  final void Function(Task)? onTaskTap;
+  final VoidCallback? sectionNav;
 
   const PrioritySection({
     super.key,
@@ -113,7 +349,30 @@ class PrioritySection extends StatelessWidget {
     required this.subtitle,
     required this.color,
     required this.tasks,
+    this.onTaskTap,
+    this.sectionNav,
   });
+
+  @override
+  State<PrioritySection> createState() => _PrioritySectionState();
+}
+
+class _PrioritySectionState extends State<PrioritySection> {
+  late List<Task> _orderedTasks;
+
+  @override
+  void initState() {
+    super.initState();
+    _orderedTasks = List.from(widget.tasks);
+  }
+
+  @override
+  void didUpdateWidget(covariant PrioritySection old) {
+    super.didUpdateWidget(old);
+    if (widget.tasks != old.tasks) {
+      _orderedTasks = List.from(widget.tasks);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,8 +383,8 @@ class PrioritySection extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           gradient: LinearGradient(
             colors: [
-              color.withOpacity(0.22),
-              color.withOpacity(0.10),
+              widget.color.withOpacity(0.22),
+              widget.color.withOpacity(0.10),
               Colors.transparent,
             ],
             begin: Alignment.topLeft,
@@ -133,7 +392,7 @@ class PrioritySection extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.18),
+              color: widget.color.withOpacity(0.18),
               blurRadius: 24,
               spreadRadius: 2,
               offset: const Offset(0, 8),
@@ -145,7 +404,7 @@ class PrioritySection extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(color: color.withOpacity(0.22), width: 1.2),
+          border: Border.all(color: widget.color.withOpacity(0.22), width: 1.2),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
@@ -155,27 +414,37 @@ class PrioritySection extends StatelessWidget {
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
                   children: [
-                    AnimatedTextKit(
-                      animatedTexts: [
-                        WavyAnimatedText(
-                          title,
-                          textStyle: GoogleFonts.baloo2(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                            letterSpacing: 1.2,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.title,
+                            style: GoogleFonts.baloo2(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: widget.color,
+                              letterSpacing: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          speed: const Duration(milliseconds: 120),
                         ),
+                        if (widget.sectionNav != null)
+                          IconButton(
+                            icon: Icon(
+                              Icons.open_in_new,
+                              color: widget.color.withOpacity(0.8),
+                              size: 20,
+                            ),
+                            tooltip: 'View all',
+                            onPressed: widget.sectionNav,
+                          ),
                       ],
-                      repeatForever: true,
-                      isRepeatingAnimation: true,
                     ),
                     Text(
-                      subtitle,
+                      widget.subtitle,
                       style: GoogleFonts.montserrat(
                         fontSize: 13,
-                        color: color.withOpacity(0.8),
+                        color: widget.color.withOpacity(0.8),
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
@@ -184,7 +453,19 @@ class PrioritySection extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: TaskList(tasks: tasks, color: color),
+                child: TaskList(
+                  tasks: _orderedTasks,
+                  color: widget.color,
+                  onTaskTap: widget.onTaskTap,
+                  reorderable: true,
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final t = _orderedTasks.removeAt(oldIndex);
+                      _orderedTasks.insert(newIndex, t);
+                    });
+                  },
+                ),
               ),
             ],
           ),
@@ -344,4 +625,136 @@ class _FullTextGlowState extends State<_FullTextGlow>
       },
     );
   }
+}
+
+class _AnimatedADHDBackground extends StatefulWidget {
+  const _AnimatedADHDBackground({super.key});
+
+  @override
+  State<_AnimatedADHDBackground> createState() =>
+      _AnimatedADHDBackgroundState();
+}
+
+class _AnimatedADHDBackgroundState extends State<_AnimatedADHDBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  final List<_BlobConfig> _blobs = [
+    _BlobConfig(
+      color: Colors.pinkAccent,
+      size: 320,
+      dx: 0.1,
+      dy: 0.18,
+      speed: 1.2,
+      phase: 0.0,
+    ),
+    _BlobConfig(
+      color: Colors.cyanAccent,
+      size: 260,
+      dx: 0.7,
+      dy: 0.22,
+      speed: 1.5,
+      phase: 1.1,
+    ),
+    _BlobConfig(
+      color: Colors.yellowAccent,
+      size: 220,
+      dx: 0.3,
+      dy: 0.7,
+      speed: 1.1,
+      phase: 2.2,
+    ),
+    _BlobConfig(
+      color: Colors.deepPurpleAccent,
+      size: 280,
+      dx: 0.8,
+      dy: 0.75,
+      speed: 1.3,
+      phase: 3.3,
+    ),
+  ];
+
+  double _startTime = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    _controller = AnimationController(
+      duration: const Duration(days: 365),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final size = MediaQuery.of(context).size;
+        final now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+        final time = (now - _startTime) / 14.0;
+        return SizedBox.expand(
+          child: Stack(
+            children: _blobs.map((blob) {
+              final t = (time * blob.speed + blob.phase);
+              final angle = 2 * pi * t;
+              final dx =
+                  blob.dx +
+                  0.18 * sin(angle) +
+                  0.13 * sin(2.7 * angle + blob.phase) +
+                  0.09 * cos(1.3 * angle + blob.phase * 1.7);
+              final dy =
+                  blob.dy +
+                  0.18 * cos(angle) +
+                  0.13 * cos(2.2 * angle + blob.phase) +
+                  0.09 * sin(1.7 * angle + blob.phase * 2.1);
+              return Positioned(
+                left: dx * size.width,
+                top: dy * size.height,
+                child: Container(
+                  width: blob.size,
+                  height: blob.size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        blob.color.withOpacity(0.23),
+                        blob.color.withOpacity(0.11),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.7, 1.0],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BlobConfig {
+  final Color color;
+  final double size;
+  final double dx;
+  final double dy;
+  final double speed;
+  final double phase;
+  const _BlobConfig({
+    required this.color,
+    required this.size,
+    required this.dx,
+    required this.dy,
+    required this.speed,
+    required this.phase,
+  });
 }
