@@ -378,11 +378,11 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                     ],
                   ),
                   onTap: () => widget.onTaskTap?.call(task),
-                ), // ListTile
-              ), // Container
-            ); // Transform.scale
-          }, // builder
-        ), // AnimatedBuilder
+                ),
+              ),
+            );
+          },
+        ), 
       ],
     );
   }

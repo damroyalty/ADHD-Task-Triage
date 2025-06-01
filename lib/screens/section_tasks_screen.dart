@@ -25,7 +25,6 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
   @override
   void initState() {
     super.initState();
-    // start with filtered tasks
     final provider = Provider.of<TaskProvider>(context, listen: false);
     if (widget.title == 'MUST-DO') {
       _orderedTasks = provider.mustDoTasks;

@@ -137,7 +137,6 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () async {
                       final url = Uri.parse(link['url'] as String);
                       try {
-                        // For Android, always use externalApplication mode
                         await launchUrl(
                           url,
                           mode: LaunchMode.externalApplication,
@@ -182,7 +181,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Change backgroundColor to match your app's dark background
       backgroundColor: const Color(0xFF181A20),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -295,7 +293,6 @@ class HomeScreen extends StatelessWidget {
                     const Color.fromARGB(255, 77, 168, 82),
                   ),
                 ),
-                // Add footer with support/social icons
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8, top: 4),
                   child: IconButton(
@@ -314,9 +311,9 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 1.0, right: 5.0), // Align with socials heart
+        padding: const EdgeInsets.only(bottom: 1.0, right: 5.0),
         child: SizedBox(
-          width: 44, // Make FAB smaller
+          width: 44,
           height: 44,
           child: FloatingActionButton(
             onPressed: () {
@@ -327,7 +324,7 @@ class HomeScreen extends StatelessWidget {
             },
             backgroundColor: const Color(0xFF23272F),
             foregroundColor: Colors.white,
-            child: const Icon(Icons.add, size: 24), // Smaller icon
+            child: const Icon(Icons.add, size: 24),
           ),
         ),
       ),
