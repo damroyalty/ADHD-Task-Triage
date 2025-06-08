@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/main.dart';
+import 'package:adhd_task_triage/models/task_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
+import 'add_task.dart';
 
 class SectionTasksScreen extends StatefulWidget {
   final String title;
@@ -41,7 +42,7 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: widget.color.withOpacity(0.82),
+        backgroundColor: widget.color.withValues(alpha: 0.82),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -72,7 +73,7 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.85),
+                  backgroundColor: Colors.white.withAlpha((0.85 * 255).round()),
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -96,6 +97,21 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          if (widget.title == 'MUST-DO' || widget.title == 'COULD-DO')
+            IconButton(
+              icon: const Icon(Icons.add, color: Colors.white),
+              tooltip: 'Add Task',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddTaskScreen(),
+                  ),
+                );
+              },
+            ),
+        ],
         title: Stack(
           alignment: Alignment.center,
           children: [
@@ -169,7 +185,8 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                           style: GoogleFonts.montserrat(color: Colors.white70),
                         )
                       : null,
-                  trailing: (widget.title == 'MUST-DO' || widget.title == 'COULD-DO')
+                  trailing:
+                      (widget.title == 'MUST-DO' || widget.title == 'COULD-DO')
                       ? Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -180,16 +197,31 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                   : Colors.blueAccent,
                               tooltip: 'Edit',
                               onPressed: () {
-                                final titleController = TextEditingController(text: task.title);
-                                final descController = TextEditingController(text: task.description ?? "");
+                                final titleController = TextEditingController(
+                                  text: task.title,
+                                );
+                                final descController = TextEditingController(
+                                  text: task.description ?? "",
+                                );
                                 showDialog(
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
                                       backgroundColor: const Color(0xFF23272F),
-                                      contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                                      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
-                                      title: Text('Edit Task', style: TextStyle(color: Colors.white)),
+                                      contentPadding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        24,
+                                        24,
+                                        16,
+                                      ),
+                                      insetPadding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 80,
+                                      ),
+                                      title: Text(
+                                        'Edit Task',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                       content: SizedBox(
                                         width: 350,
                                         child: Column(
@@ -197,39 +229,88 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                           children: [
                                             TextField(
                                               controller: titleController,
-                                              style: const TextStyle(color: Colors.white),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
                                               decoration: InputDecoration(
                                                 labelText: 'Title',
-                                                labelStyle: const TextStyle(color: Colors.white70),
+                                                labelStyle: const TextStyle(
+                                                  color: Colors.white70,
+                                                ),
                                                 filled: true,
-                                                fillColor: const Color(0xFF23272F),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderSide: const BorderSide(color: Colors.cyanAccent, width: 1.5),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                fillColor: const Color(
+                                                  0xFF23272F,
                                                 ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: const BorderSide(color: Colors.cyanAccent, width: 2.2),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Colors
+                                                                .cyanAccent,
+                                                            width: 1.5,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Colors
+                                                                .cyanAccent,
+                                                            width: 2.2,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
                                               ),
                                             ),
                                             const SizedBox(height: 18),
                                             TextField(
                                               controller: descController,
-                                              style: const TextStyle(color: Colors.white),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                              ),
                                               decoration: InputDecoration(
-                                                labelText: 'Description (optional)',
-                                                labelStyle: const TextStyle(color: Colors.white70),
+                                                labelText:
+                                                    'Description (optional)',
+                                                labelStyle: const TextStyle(
+                                                  color: Colors.white70,
+                                                ),
                                                 filled: true,
-                                                fillColor: const Color(0xFF23272F),
-                                                enabledBorder: OutlineInputBorder(
-                                                  borderSide: const BorderSide(color: Colors.cyanAccent, width: 1.5),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                fillColor: const Color(
+                                                  0xFF23272F,
                                                 ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: const BorderSide(color: Colors.cyanAccent, width: 2.2),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Colors
+                                                                .cyanAccent,
+                                                            width: 1.5,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                      borderSide:
+                                                          const BorderSide(
+                                                            color: Colors
+                                                                .cyanAccent,
+                                                            width: 2.2,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
                                               ),
                                               maxLines: 5,
                                               minLines: 3,
@@ -239,8 +320,14 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                       ),
                                       actions: [
                                         TextButton(
-                                          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              color: Colors.white54,
+                                            ),
+                                          ),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
                                         ),
                                         ElevatedButton(
                                           style: ElevatedButton.styleFrom(
@@ -249,16 +336,27 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                           ),
                                           child: const Text('Save'),
                                           onPressed: () {
-                                            Provider.of<TaskProvider>(context, listen: false).editTask(
+                                            Provider.of<TaskProvider>(
+                                              context,
+                                              listen: false,
+                                            ).editTask(
                                               task.id,
                                               titleController.text,
-                                              descController.text.isEmpty ? null : descController.text,
+                                              descController.text.isEmpty
+                                                  ? null
+                                                  : descController.text,
                                             );
                                             setState(() {
-                                              _orderedTasks[index] = task.copyWith(
-                                                title: titleController.text,
-                                                description: descController.text.isEmpty ? null : descController.text,
-                                              );
+                                              _orderedTasks[index] = task
+                                                  .copyWith(
+                                                    title: titleController.text,
+                                                    description:
+                                                        descController
+                                                            .text
+                                                            .isEmpty
+                                                        ? null
+                                                        : descController.text,
+                                                  );
                                             });
                                             Navigator.pop(context);
                                           },
@@ -276,7 +374,10 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                   : Colors.blueAccent,
                               tooltip: 'Delete',
                               onPressed: () {
-                                Provider.of<TaskProvider>(context, listen: false).deleteTask(task.id);
+                                Provider.of<TaskProvider>(
+                                  context,
+                                  listen: false,
+                                ).deleteTask(task.id);
                                 setState(() {
                                   _orderedTasks.removeAt(index);
                                 });
@@ -394,8 +495,8 @@ class _AnimatedADHDBackgroundState extends State<_AnimatedADHDBackground>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        blob.color.withOpacity(0.23),
-                        blob.color.withOpacity(0.11),
+                        blob.color.withAlpha((0.23 * 255).round()),
+                        blob.color.withAlpha((0.11 * 255).round()),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.7, 1.0],
@@ -494,15 +595,17 @@ class _GlowingAnimatedSectionTitleState
             color: _colorAnim.value,
             shadows: [
               Shadow(
-                color: widget.glowColor.withOpacity(glowOpacity),
+                color: widget.glowColor.withAlpha((glowOpacity * 255).round()),
                 blurRadius: 120,
               ),
               Shadow(
-                color: widget.glowColor.withOpacity(glowOpacity),
+                color: widget.glowColor.withAlpha((glowOpacity * 255).round()),
                 blurRadius: 60,
               ),
               Shadow(
-                color: widget.glowColor.withOpacity(glowOpacity * 0.7),
+                color: widget.glowColor.withAlpha(
+                  (glowOpacity * 0.7 * 255).round(),
+                ),
                 blurRadius: 24,
               ),
             ],

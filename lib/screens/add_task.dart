@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/main.dart';
+import 'package:adhd_task_triage/models/task_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:math';
@@ -171,20 +171,22 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
+                          final task = Task(
+                            title: _titleController.text,
+                            priority: _priority,
+                            description: _descController.text.isEmpty
+                                ? null
+                                : _descController.text,
+                          );
+
                           Provider.of<TaskProvider>(
                             context,
                             listen: false,
-                          ).addTask(
-                            Task(
-                              title: _titleController.text,
-                              priority: _priority,
-                              description: _descController.text.isEmpty
-                                  ? null
-                                  : _descController.text,
-                            ),
-                          );
+                          ).addTask(task);
+
+                          if (!mounted) return;
                           Navigator.pop(context);
                         }
                       },
@@ -252,9 +254,11 @@ class _NaturalGlowState extends State<_NaturalGlow>
                 center: Alignment.centerLeft,
                 radius: 1.1,
                 colors: [
-                  widget.glowColor1.withOpacity(0.32 * _anim.value + 0.10),
-                  widget.glowColor2.withOpacity(
-                    0.18 * (1 - _anim.value) + 0.08,
+                  widget.glowColor1.withAlpha(
+                    (0.32 * _anim.value + 0.10).round(),
+                  ),
+                  widget.glowColor2.withAlpha(
+                    (0.18 * (1 - _anim.value) + 0.08).round(),
                   ),
                   Colors.transparent,
                 ],
@@ -326,8 +330,8 @@ class _FullTextGlowState extends State<_FullTextGlow>
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
                 foreground: Paint()
-                  ..color = widget.glowColor1.withOpacity(
-                    0.55 + 0.35 * _anim.value,
+                  ..color = widget.glowColor1.withAlpha(
+                    ((0.55 + 0.35 * _anim.value) * 255).round(),
                   )
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
               ),
@@ -340,8 +344,8 @@ class _FullTextGlowState extends State<_FullTextGlow>
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
                 foreground: Paint()
-                  ..color = widget.glowColor2.withOpacity(
-                    0.38 + 0.32 * (1 - _anim.value),
+                  ..color = widget.glowColor2.withAlpha(
+                    ((0.38 + 0.32 * (1 - _anim.value)) * 255).round(),
                   )
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
               ),
@@ -354,7 +358,7 @@ class _FullTextGlowState extends State<_FullTextGlow>
 }
 
 class _AnimatedADHDBackground extends StatefulWidget {
-  const _AnimatedADHDBackground({super.key});
+  const _AnimatedADHDBackground();
 
   @override
   State<_AnimatedADHDBackground> createState() =>
@@ -451,8 +455,8 @@ class _AnimatedADHDBackgroundState extends State<_AnimatedADHDBackground>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        blob.color.withOpacity(0.23),
-                        blob.color.withOpacity(0.11),
+                        blob.color.withAlpha((0.23 * 255).round()),
+                        blob.color.withAlpha((0.11 * 255).round()),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.7, 1.0],

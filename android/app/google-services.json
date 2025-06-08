@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "790555205433",
+    "project_id": "adhd-task-triage",
+    "storage_bucket": "adhd-task-triage.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790555205433:android:70890987d9a748e591d2e8",
+        "android_client_info": {
+          "package_name": "com.example.adhd_task_triage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-OjktU-k4l40beOzXXrf4A18U2cKFnFw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

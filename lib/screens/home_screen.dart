@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
 import 'package:adhd_task_triage/widgets/task_list.dart';
 import 'add_task.dart';
-import 'package:adhd_task_triage/main.dart';
+import 'package:adhd_task_triage/models/task_provider.dart';
+import 'package:adhd_task_triage/services/database_test_service.dart';
+import 'package:adhd_task_triage/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'section_tasks_screen.dart';
@@ -17,7 +20,7 @@ class HomeScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: color.withOpacity(0.82),
+        backgroundColor: color.withValues(alpha: 0.82),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -48,7 +51,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.85),
+                  backgroundColor: Colors.white.withAlpha((0.85 * 255).round()),
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -62,6 +65,97 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _handleLogout(BuildContext context) async {
+    try {
+      final shouldLogout = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF2A2D36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Logout',
+            style: GoogleFonts.baloo2(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to logout?',
+            style: GoogleFonts.montserrat(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                'Logout',
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (shouldLogout == true) {
+        final authService = Provider.of<AuthService>(context, listen: false);
+        await authService.signOut();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2D36),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              'Error',
+              style: GoogleFonts.baloo2(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Failed to logout: ${e.toString()}',
+              style: GoogleFonts.montserrat(color: Colors.white70),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   void _showSupportPopup(BuildContext context) {
@@ -106,7 +200,9 @@ class HomeScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF23272F).withOpacity(0.95),
+        backgroundColor: const Color(
+          0xFF23272F,
+        ).withAlpha((0.95 * 255).round()),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -141,11 +237,7 @@ class HomeScreen extends StatelessWidget {
                           url,
                           mode: LaunchMode.externalApplication,
                         );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not open link')),
-                        );
-                      }
+                      } catch (e) {}
                     },
                   );
                 }).toList(),
@@ -162,7 +254,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 8),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.85),
+                  backgroundColor: Colors.white.withAlpha((0.85 * 255).round()),
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -187,43 +279,54 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
-        title: Stack(
-          alignment: Alignment.centerLeft,
-          children: [
-            Positioned.fill(
-              child: Center(
-                child: _FullTextGlow(
-                  text: 'ADHD Task Triage',
-                  fontSize: 28,
-                  glowColor1: Colors.deepPurpleAccent,
-                  glowColor2: Colors.cyanAccent,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
+        leading: const SizedBox(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            tooltip: 'Logout',
+            onPressed: () => _handleLogout(context),
+          ),
+          if (kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.bug_report, color: Colors.green),
+              tooltip: 'Test Database',
+              onPressed: () async {
+                await DatabaseTestService.testDatabaseConnection();
+                await DatabaseTestService.testTaskCreation();
+              },
             ),
-            Center(
-              child: AnimatedTextKit(
-                animatedTexts: [
-                  ColorizeAnimatedText(
-                    'ADHD Task Triage',
-                    textStyle: GoogleFonts.baloo2(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                    colors: [
-                      Colors.pinkAccent,
-                      Colors.cyanAccent,
-                      Colors.yellowAccent,
-                      Colors.deepPurpleAccent,
-                    ],
-                    speed: const Duration(milliseconds: 400),
+        ],
+        title: Stack(
+          alignment: Alignment.center,
+          children: [
+            _FullTextGlow(
+              text: 'ADHD Task Triage',
+              fontSize: 28,
+              glowColor1: Colors.deepPurpleAccent,
+              glowColor2: Colors.cyanAccent,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+            ),
+            AnimatedTextKit(
+              animatedTexts: [
+                ColorizeAnimatedText(
+                  'ADHD Task Triage',
+                  textStyle: GoogleFonts.baloo2(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
                   ),
-                ],
-                isRepeatingAnimation: true,
-                repeatForever: true,
-              ),
+                  colors: [
+                    Colors.pinkAccent,
+                    Colors.cyanAccent,
+                    Colors.yellowAccent,
+                    Colors.deepPurpleAccent,
+                  ],
+                  speed: const Duration(milliseconds: 400),
+                ),
+              ],
+              isRepeatingAnimation: true,
+              repeatForever: true,
             ),
           ],
         ),
@@ -380,8 +483,8 @@ class _PrioritySectionState extends State<PrioritySection> {
           borderRadius: BorderRadius.circular(28),
           gradient: LinearGradient(
             colors: [
-              widget.color.withOpacity(0.22),
-              widget.color.withOpacity(0.10),
+              widget.color.withValues(alpha: 0.22),
+              widget.color.withValues(alpha: 0.10),
               Colors.transparent,
             ],
             begin: Alignment.topLeft,
@@ -389,19 +492,22 @@ class _PrioritySectionState extends State<PrioritySection> {
           ),
           boxShadow: [
             BoxShadow(
-              color: widget.color.withOpacity(0.18),
+              color: widget.color.withValues(alpha: 0.18),
               blurRadius: 24,
               spreadRadius: 2,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               blurRadius: 8,
               spreadRadius: 1,
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(color: widget.color.withOpacity(0.22), width: 1.2),
+          border: Border.all(
+            color: widget.color.withValues(alpha: 0.22),
+            width: 1.2,
+          ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
@@ -429,7 +535,7 @@ class _PrioritySectionState extends State<PrioritySection> {
                           IconButton(
                             icon: Icon(
                               Icons.open_in_new,
-                              color: widget.color.withOpacity(0.8),
+                              color: widget.color.withValues(alpha: 0.8),
                               size: 20,
                             ),
                             tooltip: 'View all',
@@ -441,7 +547,7 @@ class _PrioritySectionState extends State<PrioritySection> {
                       widget.subtitle,
                       style: GoogleFonts.montserrat(
                         fontSize: 13,
-                        color: widget.color.withOpacity(0.8),
+                        color: widget.color.withValues(alpha: 0.8),
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.center,
@@ -523,9 +629,11 @@ class _NaturalGlowState extends State<_NaturalGlow>
                 center: Alignment.centerLeft,
                 radius: 1.1,
                 colors: [
-                  widget.glowColor1.withOpacity(0.32 * _anim.value + 0.10),
-                  widget.glowColor2.withOpacity(
-                    0.18 * (1 - _anim.value) + 0.08,
+                  widget.glowColor1.withValues(
+                    alpha: 0.32 * _anim.value + 0.10,
+                  ),
+                  widget.glowColor2.withValues(
+                    alpha: 0.18 * (1 - _anim.value) + 0.08,
                   ),
                   Colors.transparent,
                 ],
@@ -597,8 +705,8 @@ class _FullTextGlowState extends State<_FullTextGlow>
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
                 foreground: Paint()
-                  ..color = widget.glowColor1.withOpacity(
-                    0.55 + 0.35 * _anim.value,
+                  ..color = widget.glowColor1.withAlpha(
+                    (0.55 + 0.35 * _anim.value * 255).round(),
                   )
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
               ),
@@ -611,8 +719,8 @@ class _FullTextGlowState extends State<_FullTextGlow>
                 fontWeight: widget.fontWeight,
                 letterSpacing: widget.letterSpacing,
                 foreground: Paint()
-                  ..color = widget.glowColor2.withOpacity(
-                    0.38 + 0.32 * (1 - _anim.value),
+                  ..color = widget.glowColor2.withAlpha(
+                    (0.38 + 0.32 * (1 - _anim.value) * 255).round(),
                   )
                   ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
               ),
@@ -625,7 +733,7 @@ class _FullTextGlowState extends State<_FullTextGlow>
 }
 
 class _AnimatedADHDBackground extends StatefulWidget {
-  const _AnimatedADHDBackground({super.key});
+  const _AnimatedADHDBackground();
 
   @override
   State<_AnimatedADHDBackground> createState() =>
@@ -722,8 +830,8 @@ class _AnimatedADHDBackgroundState extends State<_AnimatedADHDBackground>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        blob.color.withOpacity(0.23),
-                        blob.color.withOpacity(0.11),
+                        blob.color.withAlpha((0.23 * 255).round()),
+                        blob.color.withAlpha((0.11 * 255).round()),
                         Colors.transparent,
                       ],
                       stops: const [0.0, 0.7, 1.0],

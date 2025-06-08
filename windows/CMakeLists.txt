@@ -2,6 +2,14 @@
 cmake_minimum_required(VERSION 3.14)
 project(adhd_task_triage LANGUAGES CXX)
 
+# Force MSVC runtime linkage for all projects to match Firebase SDK
+if (MSVC)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY
+      $<$<CONFIG:Debug>:MultiThreadedDebugDLL>
+      $<$<NOT:$<CONFIG:Debug>>:MultiThreadedDLL>
+      CACHE STRING "MSVC Runtime Library" FORCE)
+endif()
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "adhd_task_triage")
@@ -31,6 +39,16 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS) # Re-enabled to suppress C4996 warnings from Firebase SDK
+
+# Set specific options for Firebase C++ SDK on Windows - Temporarily simplify
+# set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON) # This is usually for DLLs, might not be needed for EXE
+
+# Add additional compile definitions to suppress warnings - Temporarily simplify
+# add_definitions(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+# add_definitions(-D_SILENCE_CXX17_C_HEADER_DEPRECATION_WARNING)
 
 # Compilation settings that should be applied to most targets.
 #
@@ -38,11 +56,13 @@ add_definitions(-DUNICODE -D_UNICODE)
 # default. In most cases, you should add new options to specific targets instead
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
-  target_compile_features(${TARGET} PUBLIC cxx_std_17)
+  target_compile_features(${TARGET} PUBLIC cxx_std_17) # Keep this, Flutter expects C++17
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
-  target_compile_options(${TARGET} PRIVATE /EHsc)
-  target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
+  target_compile_options(${TARGET} PRIVATE /EHsc) # /GR is often implied by /EHsc or modern MSVC defaults
+  # target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0") # Keep commented
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
+  # Configure build options.
+  target_compile_options(${TARGET} PRIVATE /EHsc /GR)
 endfunction()
 
 # Flutter library and tool build rules.
