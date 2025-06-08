@@ -65,7 +65,12 @@ supabase_url.txt
 supabase_anon_key.txt
 *.supabase
 .supabase_schema.sql
-.firebase.json
+
+# firebase configuration
+firebase.json
+.firebaserc
+firebase-debug.log
+firebase-debug.*.log
 
 # sensitive documentation files
 SUPABASE_SETUP_FINAL.md
