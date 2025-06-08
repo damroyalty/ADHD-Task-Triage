@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/models/task_provider.dart';
+import 'package:adhd_task_triage/providers/supabase_task_provider.dart';
 
 class TaskList extends StatefulWidget {
   final List<Task> tasks;
@@ -211,7 +211,10 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
               ),
               child: const Text('Save'),
               onPressed: () {
-                Provider.of<TaskProvider>(context, listen: false).editTask(
+                Provider.of<SupabaseTaskProvider>(
+                  context,
+                  listen: false,
+                ).editTask(
                   task.id,
                   titleController.text,
                   descController.text.isEmpty ? null : descController.text,
@@ -251,8 +254,7 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
                 if (value == true && !task.isCompleted) {
                   _playCelebrate(index);
                 }
-
-                Provider.of<TaskProvider>(
+                Provider.of<SupabaseTaskProvider>(
                   context,
                   listen: false,
                 ).toggleTaskCompletion(task.id);
@@ -323,7 +325,7 @@ class _TaskListState extends State<TaskList> with TickerProviderStateMixin {
             icon: Icon(Icons.delete, color: widget.color, size: 20),
             tooltip: 'Delete',
             onPressed: () async {
-              Provider.of<TaskProvider>(
+              Provider.of<SupabaseTaskProvider>(
                 context,
                 listen: false,
               ).deleteTask(task.id);

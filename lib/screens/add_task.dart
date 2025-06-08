@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/models/task_provider.dart';
+import 'package:adhd_task_triage/providers/supabase_task_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:math';
@@ -181,7 +181,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                 : _descController.text,
                           );
 
-                          Provider.of<TaskProvider>(
+                          Provider.of<SupabaseTaskProvider>(
                             context,
                             listen: false,
                           ).addTask(task);

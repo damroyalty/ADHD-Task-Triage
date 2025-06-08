@@ -39,7 +39,54 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# supabase config
+# google services configuration
+/android/app/src/google-services.json
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+
+# supabase configuration & related files
 lib/supabase_config.dart
+supabase_config.dart
+**/supabase_config.dart
+supabase/.env
+supabase/.env.local
+supabase/.env.example
+supabase/config.toml
+.env.supabase
+.env.local.supabase
+supabase_schema.sql
+*_schema.sql
+supabase_migrations/
+migrations/
+*.SUPABASE_SETUP.md
+supabase_url.txt
+supabase_anon_key.txt
+*.supabase
 .supabase_schema.sql
 .firebase.json
+
+# sensitive documentation files
+SUPABASE_SETUP_FINAL.md
+SUPABASE_SETUP.md
+MIGRATION_COMPLETE.md
+SUCCESS_SUMMARY.md
+
+# build logs and development artifacts
+build_log.txt
+*.build_log.txt
+*.build.log
+build_output*.txt
+
+# development notes and setup files
+SETUP_*.md
+*_SETUP_*.md
+*_COMPLETE.md
+*_SUCCESS*.md
+
+# temporary and backup files
+*.tmp
+*.bak
+*.backup
+*_backup.*

@@ -4,13 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
 import 'package:adhd_task_triage/widgets/task_list.dart';
 import 'add_task.dart';
-import 'package:adhd_task_triage/models/task_provider.dart';
+import 'package:adhd_task_triage/providers/supabase_task_provider.dart';
 import 'package:adhd_task_triage/services/database_test_service.dart';
 import 'package:adhd_task_triage/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'section_tasks_screen.dart';
 import 'dart:math';
+import 'dart:io' show Platform;
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -134,6 +135,447 @@ class HomeScreen extends StatelessWidget {
             ),
             content: Text(
               'Failed to logout: ${e.toString()}',
+              style: GoogleFonts.montserrat(color: Colors.white70),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _removeDuplicates(BuildContext context) async {
+    try {
+      final shouldRemove = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF2A2D36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Remove Duplicate Tasks',
+            style: GoogleFonts.baloo2(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'This will scan for and remove duplicate tasks (same title, priority, and completion status). Only the oldest copy of each task will be kept.',
+            style: GoogleFonts.montserrat(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                'Remove Duplicates',
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldRemove == true) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF2A2D36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: Colors.redAccent),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Removing duplicate tasks...',
+                    style: GoogleFonts.montserrat(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final taskProvider = Provider.of<SupabaseTaskProvider>(
+          context,
+          listen: false,
+        );
+        await taskProvider.removeDuplicateTasks();
+
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF2A2D36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                'Duplicates Removed!',
+                style: GoogleFonts.baloo2(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Text(
+                'Duplicate tasks have been successfully removed. Your task list is now clean!',
+                style: GoogleFonts.montserrat(color: Colors.white70),
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.85),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'OK',
+                    style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2D36),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              'Error',
+              style: GoogleFonts.baloo2(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Failed to remove duplicates: ${e.toString()}',
+              style: GoogleFonts.montserrat(color: Colors.white70),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _checkLocalTasks(BuildContext context) async {
+    try {
+      final taskProvider = Provider.of<SupabaseTaskProvider>(
+        context,
+        listen: false,
+      );
+      final localTasks = await taskProvider.checkLocalTasks();
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2D36),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              localTasks.isEmpty ? 'Local Tasks Status' : 'Local Tasks Found',
+              style: GoogleFonts.baloo2(
+                color: localTasks.isEmpty ? Colors.orange : Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              localTasks.isEmpty
+                  ? 'No local tasks found on this device.\n\n${Platform.isWindows || Platform.isMacOS || Platform.isLinux ? "Desktop platforms use cloud storage directly." : "This is normal if you\'re already using cloud sync."}'
+                  : 'Found ${localTasks.length} local tasks:\n\n${localTasks.map((t) => '• ${t.title}').take(5).join('\n')}${localTasks.length > 5 ? '\n... and ${localTasks.length - 5} more' : ''}',
+              style: GoogleFonts.montserrat(color: Colors.white70),
+            ),
+            actions: [
+              if (localTasks.isNotEmpty) ...[
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _handleMigration(context);
+                  },
+                  child: Text(
+                    'Migrate Now',
+                    style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2D36),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              'Local Tasks Check',
+              style: GoogleFonts.baloo2(
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Local storage check completed.\n\n${e.toString().contains('Migration is only available') ? 'Desktop platforms use cloud storage directly - no local migration needed.' : 'Error: ${e.toString()}'}',
+              style: GoogleFonts.montserrat(color: Colors.white70),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.85),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleMigration(BuildContext context) async {
+    try {
+      final shouldMigrate = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF2A2D36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Migrate Local Tasks',
+            style: GoogleFonts.baloo2(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'This will upload your local tasks from your phone to the cloud. Your existing cloud tasks will not be affected.',
+            style: GoogleFonts.montserrat(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orangeAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                'Migrate',
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldMigrate == true) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF2A2D36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: Colors.orangeAccent),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Migrating tasks to cloud...',
+                    style: GoogleFonts.montserrat(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final taskProvider = Provider.of<SupabaseTaskProvider>(
+          context,
+          listen: false,
+        );
+        await taskProvider.migrateLocalTasksToCloud();
+
+        if (context.mounted) {
+          Navigator.of(context).pop();
+        }
+
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF2A2D36),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                'Migration Complete!',
+                style: GoogleFonts.baloo2(
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Text(
+                'Your local tasks have been successfully migrated to the cloud. They should now sync across all your devices!',
+                style: GoogleFonts.montserrat(color: Colors.white70),
+              ),
+              actions: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.85),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'OK',
+                    style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF2A2D36),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Text(
+              'Migration Failed',
+              style: GoogleFonts.baloo2(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Failed to migrate tasks: ${e.toString()}',
               style: GoogleFonts.montserrat(color: Colors.white70),
             ),
             actions: [
@@ -342,7 +784,7 @@ class HomeScreen extends StatelessWidget {
                   title: 'MUST-DO (1-3 MAX)',
                   subtitle: 'what will wreck your future if not done today?',
                   color: const Color.fromARGB(255, 255, 72, 69),
-                  tasks: context.watch<TaskProvider>().mustDoTasks,
+                  tasks: context.watch<SupabaseTaskProvider>().mustDoTasks,
                   onTaskTap: (task) => _showTaskInfoDialog(
                     context,
                     task,
@@ -355,7 +797,9 @@ class HomeScreen extends StatelessWidget {
                         builder: (context) => SectionTasksScreen(
                           title: 'MUST-DO',
                           color: const Color.fromARGB(255, 255, 72, 69),
-                          tasks: context.read<TaskProvider>().mustDoTasks,
+                          tasks: context
+                              .read<SupabaseTaskProvider>()
+                              .mustDoTasks,
                         ),
                       ),
                     );
@@ -365,7 +809,7 @@ class HomeScreen extends StatelessWidget {
                   title: 'COULD-DO',
                   subtitle: 'could be done, but no disaster if skipped',
                   color: const Color.fromARGB(255, 42, 155, 247),
-                  tasks: context.watch<TaskProvider>().couldDoTasks,
+                  tasks: context.watch<SupabaseTaskProvider>().couldDoTasks,
                   onTaskTap: (task) => _showTaskInfoDialog(
                     context,
                     task,
@@ -378,7 +822,9 @@ class HomeScreen extends StatelessWidget {
                         builder: (context) => SectionTasksScreen(
                           title: 'COULD-DO',
                           color: const Color.fromARGB(255, 42, 155, 247),
-                          tasks: context.read<TaskProvider>().couldDoTasks,
+                          tasks: context
+                              .read<SupabaseTaskProvider>()
+                              .couldDoTasks,
                         ),
                       ),
                     );
@@ -389,7 +835,7 @@ class HomeScreen extends StatelessWidget {
                   subtitle:
                       'dont get complacent just because you completed a few tasks!',
                   color: const Color.fromARGB(255, 77, 168, 82),
-                  tasks: context.watch<TaskProvider>().completedTasks,
+                  tasks: context.watch<SupabaseTaskProvider>().completedTasks,
                   onTaskTap: (task) => _showTaskInfoDialog(
                     context,
                     task,
@@ -398,14 +844,49 @@ class HomeScreen extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8, top: 4),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.favorite,
-                      color: Colors.pinkAccent,
-                      size: 32,
-                    ),
-                    tooltip: 'Support & Socials',
-                    onPressed: () => _showSupportPopup(context),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.search,
+                          color: Colors.blueAccent,
+                          size: 32,
+                        ),
+                        tooltip: 'Check Local Tasks',
+                        onPressed: () => _checkLocalTasks(context),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.cloud_upload,
+                          color: Colors.orangeAccent,
+                          size: 32,
+                        ),
+                        tooltip: 'Migrate Local Tasks to Cloud',
+                        onPressed: () => _handleMigration(context),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.content_copy,
+                          color: Colors.redAccent,
+                          size: 32,
+                        ),
+                        tooltip: 'Remove Duplicate Tasks',
+                        onPressed: () => _removeDuplicates(context),
+                      ),
+                      const SizedBox(width: 16),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.favorite,
+                          color: Colors.pinkAccent,
+                          size: 32,
+                        ),
+                        tooltip: 'Support & Socials',
+                        onPressed: () => _showSupportPopup(context),
+                      ),
+                    ],
                   ),
                 ),
               ],

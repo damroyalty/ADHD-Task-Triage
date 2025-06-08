@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/models/task_provider.dart';
+import 'package:adhd_task_triage/providers/supabase_task_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import 'add_task.dart';
@@ -26,7 +26,7 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<TaskProvider>(context, listen: false);
+    final provider = Provider.of<SupabaseTaskProvider>(context, listen: false);
     if (widget.title == 'MUST-DO') {
       _orderedTasks = provider.mustDoTasks;
     } else if (widget.title == 'COULD-DO') {
@@ -336,7 +336,7 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                           ),
                                           child: const Text('Save'),
                                           onPressed: () {
-                                            Provider.of<TaskProvider>(
+                                            Provider.of<SupabaseTaskProvider>(
                                               context,
                                               listen: false,
                                             ).editTask(
@@ -374,7 +374,7 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
                                   : Colors.blueAccent,
                               tooltip: 'Delete',
                               onPressed: () {
-                                Provider.of<TaskProvider>(
+                                Provider.of<SupabaseTaskProvider>(
                                   context,
                                   listen: false,
                                 ).deleteTask(task.id);

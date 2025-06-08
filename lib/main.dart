@@ -3,7 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:adhd_task_triage/models/task.dart';
-import 'package:adhd_task_triage/models/task_provider.dart';
 import 'package:adhd_task_triage/providers/supabase_task_provider.dart';
 import 'package:adhd_task_triage/services/auth_service.dart';
 import 'package:adhd_task_triage/screens/home_screen.dart';
@@ -29,15 +28,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
-        ChangeNotifierProvider(create: (_) => TaskProvider()),
-        ChangeNotifierProxyProvider2<
-          AuthService,
-          TaskProvider,
-          SupabaseTaskProvider
-        >(
+        ChangeNotifierProxyProvider<AuthService, SupabaseTaskProvider>(
           create: (context) =>
               SupabaseTaskProvider(context.read<AuthService>()),
-          update: (context, authService, taskProvider, previous) =>
+          update: (context, authService, previous) =>
               previous ?? SupabaseTaskProvider(authService),
         ),
       ],

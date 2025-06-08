@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:hive/hive.dart';
+import 'dart:io' show Platform;
 import '../models/task.dart';
 import '../services/auth_service.dart';
 
@@ -69,23 +71,19 @@ class SupabaseTaskProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addTask(
-    String title,
-    String? description,
-    TaskPriority priority,
-  ) async {
+  Future<void> addTask(Task task) async {
     if (!_authService.isSignedIn) return;
 
     try {
       final taskData = {
-        'title': title,
-        'description': description,
-        'priority': priority.name,
-        'is_completed': false,
+        'id': task.id,
+        'title': task.title,
+        'description': task.description,
+        'priority': task.priority.name,
+        'is_completed': task.isCompleted,
         'user_id': _authService.currentUser!.id,
-        'created_at': DateTime.now().toIso8601String(),
+        'created_at': task.createdAt.toIso8601String(),
       };
-
       final response = await _supabase
           .from('tasks')
           .insert(taskData)
@@ -166,6 +164,166 @@ class SupabaseTaskProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       if (kDebugMode) print('Error deleting task: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Task>> checkLocalTasks() async {
+    try {
+      if (kDebugMode) print('🔍 Checking for local tasks...');
+
+      if (!Platform.isAndroid && !Platform.isIOS) {
+        if (kDebugMode)
+          print(
+            'ℹ️ Local task migration is only available on mobile platforms',
+          );
+        return [];
+      }
+
+      final taskBox = await Hive.openBox<Task>('tasks');
+      final localTasks = taskBox.values.toList();
+
+      if (kDebugMode) print('📱 Found ${localTasks.length} local tasks');
+
+      return localTasks;
+    } catch (e) {
+      if (kDebugMode) print('❌ Error checking local tasks: $e');
+      return [];
+    }
+  }
+
+  Future<void> removeDuplicateTasks() async {
+    if (!_authService.isSignedIn) return;
+
+    try {
+      if (kDebugMode) print('🔄 Checking for duplicate tasks...');
+
+      final response = await _supabase
+          .from('tasks')
+          .select()
+          .eq('user_id', _authService.currentUser!.id)
+          .order('created_at');
+
+      final tasks = (response as List<dynamic>)
+          .map((data) => Task.fromJson(data))
+          .toList();
+
+      final Map<String, List<Task>> taskGroups = {};
+
+      for (final task in tasks) {
+        final key = '${task.title}_${task.priority.name}_${task.isCompleted}';
+        taskGroups[key] ??= [];
+        taskGroups[key]!.add(task);
+      }
+
+      final List<String> idsToDelete = [];
+      int duplicateCount = 0;
+
+      for (final group in taskGroups.values) {
+        if (group.length > 1) {
+          group.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          for (int i = 1; i < group.length; i++) {
+            idsToDelete.add(group[i].id);
+            duplicateCount++;
+          }
+        }
+      }
+
+      if (idsToDelete.isEmpty) {
+        if (kDebugMode) print('✅ No duplicate tasks found');
+        return;
+      }
+
+      if (kDebugMode) print('🗑️ Removing $duplicateCount duplicate tasks...');
+
+      for (final id in idsToDelete) {
+        await _supabase.from('tasks').delete().eq('id', id);
+      }
+
+      await loadTasks();
+
+      if (kDebugMode)
+        print('✅ Successfully removed $duplicateCount duplicate tasks!');
+    } catch (e) {
+      if (kDebugMode) print('❌ Error removing duplicates: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> migrateLocalTasksToCloud() async {
+    if (!_authService.isSignedIn) {
+      if (kDebugMode) print('❌ User not signed in - cannot migrate tasks');
+      return;
+    }
+
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      if (kDebugMode)
+        print('ℹ️ Local task migration is only available on mobile platforms');
+      throw Exception('Migration is only available on mobile devices');
+    }
+
+    try {
+      if (kDebugMode)
+        print('🔄 Starting task migration from local to cloud...');
+
+      final taskBox = await Hive.openBox<Task>('tasks');
+      final localTasks = taskBox.values.toList();
+
+      if (localTasks.isEmpty) {
+        if (kDebugMode) print('ℹ️ No local tasks found to migrate');
+        return;
+      }
+
+      if (kDebugMode)
+        print('📱 Found ${localTasks.length} local tasks to migrate');
+
+      final existingCloudTasks = await _supabase
+          .from('tasks')
+          .select('id')
+          .eq('user_id', _authService.currentUser!.id);
+
+      final existingIds = (existingCloudTasks as List<dynamic>)
+          .map((task) => task['id'] as String)
+          .toSet();
+
+      final tasksToMigrate = localTasks
+          .where((task) => !existingIds.contains(task.id))
+          .toList();
+
+      if (tasksToMigrate.isEmpty) {
+        if (kDebugMode) print('ℹ️ All local tasks already exist in cloud');
+        await loadTasks();
+        return;
+      }
+
+      if (kDebugMode)
+        print(
+          '⬆️ Uploading ${tasksToMigrate.length} new tasks to cloud...',
+        );
+      final taskDataList = tasksToMigrate
+          .map(
+            (task) => {
+              'title': task.title,
+              'description': task.description,
+              'priority': task.priority.name,
+              'is_completed': task.isCompleted,
+              'user_id': _authService.currentUser!.id,
+              'created_at': task.createdAt.toIso8601String(),
+            },
+          )
+          .toList();
+
+      await _supabase.from('tasks').insert(taskDataList);
+
+      await loadTasks();
+
+      if (kDebugMode)
+        print(
+          '✅ Successfully migrated ${tasksToMigrate.length} tasks to cloud!',
+        );
+    } catch (e) {
+      _error = 'Migration failed: $e';
+      if (kDebugMode) print('❌ Task migration failed: $e');
       rethrow;
     }
   }
