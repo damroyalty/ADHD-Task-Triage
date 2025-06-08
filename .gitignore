@@ -42,3 +42,4 @@ app.*.map.json
 # supabase config
 lib/supabase_config.dart
 .supabase_schema.sql
+.firebase.json
