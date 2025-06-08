@@ -39,14 +39,14 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# google services configuration
+# google services config
 /android/app/src/google-services.json
 google-services.json
 **/google-services.json
 GoogleService-Info.plist
 **/GoogleService-Info.plist
 
-# supabase configuration & related files
+# supabase config & related files
 lib/supabase_config.dart
 supabase_config.dart
 **/supabase_config.dart
@@ -66,7 +66,7 @@ supabase_anon_key.txt
 *.supabase
 .supabase_schema.sql
 
-# firebase configuration
+# firebase config
 firebase.json
 .firebaserc
 firebase-debug.log
