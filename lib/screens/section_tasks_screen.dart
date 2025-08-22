@@ -99,17 +99,30 @@ class _SectionTasksScreenState extends State<SectionTasksScreen> {
         elevation: 0,
         actions: [
           if (widget.title == 'MUST-DO' || widget.title == 'COULD-DO')
-            IconButton(
-              icon: const Icon(Icons.add, color: Colors.white),
-              tooltip: 'Add Task',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddTaskScreen(),
-                  ),
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: FloatingActionButton(
+                  heroTag: 'sectionAddTaskBtn_${widget.title}',
+                  backgroundColor: widget.title == 'MUST-DO'
+                      ? Colors.redAccent
+                      : Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                  tooltip: 'Add Task',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddTaskScreen(),
+                      ),
+                    );
+                  },
+                  child: const Icon(Icons.add, size: 28),
+                ),
+              ),
             ),
         ],
         title: Stack(

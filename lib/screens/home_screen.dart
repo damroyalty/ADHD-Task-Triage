@@ -16,6 +16,117 @@ import 'package:url_launcher/url_launcher.dart';
 import 'goals_screen.dart';
 
 class HomeScreen extends StatelessWidget {
+  void _showTaskSearchDialog(BuildContext context) {
+    final allTasks = [
+      ...context.read<SupabaseTaskProvider>().mustDoTasks,
+      ...context.read<SupabaseTaskProvider>().couldDoTasks,
+      ...context.read<SupabaseTaskProvider>().completedTasks,
+    ];
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        String query = '';
+        List<Task> results = [];
+        return StatefulBuilder(
+          builder: (context, setState) {
+            results = query.isEmpty
+                ? []
+                : allTasks
+                      .where(
+                        (t) =>
+                            t.title.toLowerCase().contains(query.toLowerCase()),
+                      )
+                      .toList();
+            return Dialog(
+              backgroundColor: const Color(0xFF23272F),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Search tasks...',
+                        hintStyle: GoogleFonts.montserrat(
+                          color: Colors.white54,
+                        ),
+                        filled: true,
+                        fillColor: Colors.black.withOpacity(0.12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      style: GoogleFonts.montserrat(color: Colors.white),
+                      onChanged: (val) => setState(() => query = val),
+                    ),
+                    const SizedBox(height: 16),
+                    if (query.isNotEmpty && results.isEmpty)
+                      Text(
+                        'No tasks found.',
+                        style: GoogleFonts.montserrat(color: Colors.white70),
+                      ),
+                    if (query.isNotEmpty && results.isNotEmpty)
+                      SizedBox(
+                        height: 220,
+                        child: ListView.builder(
+                          itemCount: results.length,
+                          itemBuilder: (context, i) {
+                            final t = results[i];
+                            return ListTile(
+                              title: Text(
+                                t.title,
+                                style: GoogleFonts.baloo2(color: Colors.white),
+                              ),
+                              subtitle:
+                                  t.description != null &&
+                                      t.description!.isNotEmpty
+                                  ? Text(
+                                      t.description!,
+                                      style: GoogleFonts.montserrat(
+                                        color: Colors.white54,
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () {
+                                Navigator.of(ctx).pop();
+                                _showTaskInfoDialog(
+                                  context,
+                                  t,
+                                  Colors.blueAccent,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withAlpha(
+                          (0.85 * 255).round(),
+                        ),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   const HomeScreen({super.key});
 
   void _showTaskInfoDialog(BuildContext context, Task task, Color color) {
@@ -744,7 +855,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             _FullTextGlow(
               text: 'ADHD Task Triage',
-              fontSize: 28,
+              fontSize: 22,
               glowColor1: Colors.deepPurpleAccent,
               glowColor2: Colors.cyanAccent,
               fontWeight: FontWeight.bold,
@@ -755,7 +866,7 @@ class HomeScreen extends StatelessWidget {
                 ColorizeAnimatedText(
                   'ADHD Task Triage',
                   textStyle: GoogleFonts.baloo2(
-                    fontSize: 28,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                   ),
@@ -855,9 +966,9 @@ class HomeScreen extends StatelessWidget {
                           size: 32,
                         ),
                         tooltip: 'Search Tasks',
-                        onPressed: () => _checkLocalTasks(context),
+                        onPressed: () => _showTaskSearchDialog(context),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 0),
                       IconButton(
                         icon: const Icon(
                           Icons.cloud_upload,
@@ -867,7 +978,7 @@ class HomeScreen extends StatelessWidget {
                         tooltip: 'Migrate Local Tasks to Cloud',
                         onPressed: () => _handleMigration(context),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 0),
                       IconButton(
                         icon: const Icon(
                           Icons.content_copy,
@@ -877,7 +988,7 @@ class HomeScreen extends StatelessWidget {
                         tooltip: 'Remove Duplicate Tasks',
                         onPressed: () => _removeDuplicates(context),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 0),
                       IconButton(
                         icon: const Icon(
                           Icons.favorite,

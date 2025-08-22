@@ -674,14 +674,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         buildTermSection(
-                          'Short Term Goals',
+                          'Short Term Goals (0-6 months)',
                           Colors.cyanAccent,
                           _goals
                               .where((g) => g.term == 'Short term 0-6 months')
                               .toList(),
                         ),
                         buildTermSection(
-                          'Medium Term Goals',
+                          'Medium Term Goals (6 months - 2 years)',
                           Colors.amber,
                           _goals
                               .where(
@@ -691,7 +691,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                               .toList(),
                         ),
                         buildTermSection(
-                          'Long Term Goals',
+                          'Long Term Goals (2+ years)',
                           Colors.deepPurpleAccent,
                           _goals
                               .where((g) => g.term == 'Long term 2+ years')
