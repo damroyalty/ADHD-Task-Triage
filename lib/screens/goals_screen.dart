@@ -211,39 +211,42 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           style: GoogleFonts.montserrat(color: Colors.white70),
                         ),
                         const SizedBox(width: 8),
-                        DropdownButton<String>(
-                          value: localTerm,
-                          dropdownColor: const Color(0xFF23272F),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'Short term 0-6 months',
-                              child: Text(
-                                'Short term 0-6 months',
-                                style: TextStyle(color: Colors.cyanAccent),
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Medium term 6 months - 2 years',
-                              child: Text(
-                                'Medium term 6 months - 2 years',
-                                style: TextStyle(color: Colors.amber),
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Long term 2+ years',
-                              child: Text(
-                                'Long term 2+ years',
-                                style: TextStyle(
-                                  color: Colors.deepPurpleAccent,
+                        Expanded(
+                          child: DropdownButton<String>(
+                            value: localTerm,
+                            dropdownColor: const Color(0xFF23272F),
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Short term 0-6 months',
+                                child: Text(
+                                  'Short term 0-6 months',
+                                  style: TextStyle(color: Colors.cyanAccent),
                                 ),
                               ),
-                            ),
-                          ],
-                          onChanged: (val) {
-                            setStateDialog(() {
-                              localTerm = val!;
-                            });
-                          },
+                              DropdownMenuItem(
+                                value: 'Medium term 6 months - 2 years',
+                                child: Text(
+                                  'Medium term 6 months - 2 years',
+                                  style: TextStyle(color: Colors.amber),
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Long term 2+ years',
+                                child: Text(
+                                  'Long term 2+ years',
+                                  style: TextStyle(
+                                    color: Colors.deepPurpleAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setStateDialog(() {
+                                localTerm = val!;
+                              });
+                            },
+                          ),
                         ),
                       ],
                     ),
