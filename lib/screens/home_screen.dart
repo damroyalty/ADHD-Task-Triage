@@ -13,6 +13,7 @@ import 'section_tasks_screen.dart';
 import 'dart:math';
 import 'dart:io' show Platform;
 import 'package:url_launcher/url_launcher.dart';
+import 'goals_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -73,7 +74,7 @@ class HomeScreen extends StatelessWidget {
       final shouldLogout = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF2A2D36),
+          backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -715,7 +716,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF181A20),
+      backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -894,23 +895,60 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 1.0, right: 5.0),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddTaskScreen()),
-              );
-            },
-            backgroundColor: const Color(0xFF23272F),
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add, size: 24),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 1.0, right: 8.0),
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: FloatingActionButton(
+                    heroTag: 'goalsBtn',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GoalsScreen(),
+                        ),
+                      );
+                    },
+                    backgroundColor: Colors.yellow[700],
+                    foregroundColor: Colors.black,
+                    child: const Icon(Icons.flag, size: 24),
+                    tooltip: 'View Goals',
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 1.0, right: 5.0),
+                child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: FloatingActionButton(
+                    heroTag: 'addTaskBtn',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddTaskScreen(),
+                        ),
+                      );
+                    },
+                    backgroundColor: const Color(0xFF23272F),
+                    foregroundColor: Colors.white,
+                    child: const Icon(Icons.add, size: 24),
+                    tooltip: 'Add Task',
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

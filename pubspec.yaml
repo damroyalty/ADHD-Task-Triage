@@ -1,4 +1,4 @@
-name: ADHD Task Triage
+name: adhd_task_triage
 description: "A task triage app for ADHD users, designed to help them prioritize and manage their tasks effectively. Short term/mid term/long term goals to be added soon too"
 
 publish_to: "none"
