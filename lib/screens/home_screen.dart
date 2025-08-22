@@ -854,7 +854,7 @@ class HomeScreen extends StatelessWidget {
                           color: Colors.blueAccent,
                           size: 32,
                         ),
-                        tooltip: 'Check Local Tasks',
+                        tooltip: 'Search Tasks',
                         onPressed: () => _checkLocalTasks(context),
                       ),
                       const SizedBox(width: 16),
@@ -895,60 +895,57 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 1.0, right: 8.0),
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: FloatingActionButton(
-                    heroTag: 'goalsBtn',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const GoalsScreen(),
-                        ),
-                      );
-                    },
-                    backgroundColor: Colors.yellow[700],
-                    foregroundColor: Colors.black,
-                    child: const Icon(Icons.flag, size: 24),
-                    tooltip: 'View Goals',
-                  ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: FloatingActionButton(
+                  heroTag: 'goalsBtn',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const GoalsScreen(),
+                      ),
+                    );
+                  },
+                  backgroundColor: Colors.yellow[700],
+                  foregroundColor: Colors.black,
+                  child: const Icon(Icons.flag, size: 24),
+                  tooltip: 'View Goals',
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 1.0, right: 5.0),
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: FloatingActionButton(
-                    heroTag: 'addTaskBtn',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddTaskScreen(),
-                        ),
-                      );
-                    },
-                    backgroundColor: const Color(0xFF23272F),
-                    foregroundColor: Colors.white,
-                    child: const Icon(Icons.add, size: 24),
-                    tooltip: 'Add Task',
-                  ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 24.0),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: FloatingActionButton(
+                  heroTag: 'addTaskBtn',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddTaskScreen(),
+                      ),
+                    );
+                  },
+                  backgroundColor: const Color(0xFF23272F),
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.add, size: 24),
+                  tooltip: 'Add Task',
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
