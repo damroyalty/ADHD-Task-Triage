@@ -896,12 +896,12 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
+        padding: const EdgeInsets.only(bottom: 5.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
-              padding: const EdgeInsets.only(left: 24.0),
+              padding: const EdgeInsets.only(left: 48.0),
               child: SizedBox(
                 width: 44,
                 height: 44,
@@ -923,7 +923,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 24.0),
+              padding: const EdgeInsets.only(right: 14.0),
               child: SizedBox(
                 width: 44,
                 height: 44,
