@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:auto_size_text/auto_size_text.dart';
 
 class _AnimatedADHDBackground extends StatefulWidget {
   const _AnimatedADHDBackground();
@@ -561,6 +562,65 @@ class _GoalsScreenState extends State<GoalsScreen> {
     _loadGoalsFromSupabase();
   }
 
+  Widget buildTermSection(
+    String label,
+    Color labelColor,
+    List<Goal> termGoals,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.baloo2(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: labelColor,
+            shadows: [
+              Shadow(color: labelColor.withOpacity(0.3), blurRadius: 8),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        ReorderableListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          onReorder: (oldIndex, newIndex) {
+            setState(() {
+              if (newIndex > oldIndex) newIndex--;
+              final item = termGoals.removeAt(oldIndex);
+              termGoals.insert(newIndex, item);
+            });
+          },
+          children: [
+            for (final goal in termGoals)
+              Dismissible(
+                key: ValueKey(goal.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  color: Colors.redAccent,
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                onDismissed: (_) async {
+                  await _deleteGoalFromSupabase(goal);
+                  await _loadGoalsFromSupabase();
+                  if (mounted) setState(() {});
+                },
+                child: GestureDetector(
+                  onTap: () =>
+                      _addOrEditGoal(goal: goal, index: _goals.indexOf(goal)),
+                  child: _goalCard(goal),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -604,154 +664,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        buildTermSection(
                           'Short Term Goals',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.cyanAccent,
-                            shadows: [
-                              Shadow(
-                                color: Colors.cyanAccent.withOpacity(0.3),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
+                          Colors.cyanAccent,
+                          _goals
+                              .where((g) => g.term == 'Short term 0-6 months')
+                              .toList(),
                         ),
-                        const SizedBox(height: 8),
-                        ..._goals
-                            .where((g) => g.term == 'Short term 0-6 months')
-                            .map(
-                              (goal) => Dismissible(
-                                key: ValueKey(
-                                  'short-' + goal.title + goal.targetDate,
-                                ),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  color: Colors.redAccent,
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onDismissed: (_) async {
-                                  await _deleteGoalFromSupabase(goal);
-                                  await _loadGoalsFromSupabase();
-                                  if (mounted) setState(() {});
-                                },
-                                child: GestureDetector(
-                                  onTap: () => _addOrEditGoal(
-                                    goal: goal,
-                                    index: _goals.indexOf(goal),
-                                  ),
-                                  child: _goalCard(goal),
-                                ),
-                              ),
-                            ),
-                        const SizedBox(height: 24),
-                        Text(
+                        buildTermSection(
                           'Medium Term Goals',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                            shadows: [
-                              Shadow(
-                                color: Colors.amber.withOpacity(0.3),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
+                          Colors.amber,
+                          _goals
+                              .where(
+                                (g) =>
+                                    g.term == 'Medium term 6 months - 2 years',
+                              )
+                              .toList(),
                         ),
-                        const SizedBox(height: 8),
-                        ..._goals
-                            .where(
-                              (g) => g.term == 'Medium term 6 months - 2 years',
-                            )
-                            .map(
-                              (goal) => Dismissible(
-                                key: ValueKey(
-                                  'medium-' + goal.title + goal.targetDate,
-                                ),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  color: Colors.redAccent,
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onDismissed: (_) async {
-                                  await _deleteGoalFromSupabase(goal);
-                                  await _loadGoalsFromSupabase();
-                                  if (mounted) setState(() {});
-                                },
-                                child: GestureDetector(
-                                  onTap: () => _addOrEditGoal(
-                                    goal: goal,
-                                    index: _goals.indexOf(goal),
-                                  ),
-                                  child: _goalCard(goal),
-                                ),
-                              ),
-                            ),
-                        const SizedBox(height: 24),
-                        Text(
+                        buildTermSection(
                           'Long Term Goals',
-                          style: GoogleFonts.baloo2(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurpleAccent,
-                            shadows: [
-                              Shadow(
-                                color: Colors.deepPurpleAccent.withOpacity(0.3),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
+                          Colors.deepPurpleAccent,
+                          _goals
+                              .where((g) => g.term == 'Long term 2+ years')
+                              .toList(),
                         ),
-                        const SizedBox(height: 8),
-                        ..._goals
-                            .where((g) => g.term == 'Long term 2+ years')
-                            .map(
-                              (goal) => Dismissible(
-                                key: ValueKey(
-                                  'long-' + goal.title + goal.targetDate,
-                                ),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  color: Colors.redAccent,
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onDismissed: (_) async {
-                                  await _deleteGoalFromSupabase(goal);
-                                  await _loadGoalsFromSupabase();
-                                  if (mounted) setState(() {});
-                                },
-                                child: GestureDetector(
-                                  onTap: () => _addOrEditGoal(
-                                    goal: goal,
-                                    index: _goals.indexOf(goal),
-                                  ),
-                                  child: _goalCard(goal),
-                                ),
-                              ),
-                            ),
                       ],
                     ),
                   ),
@@ -799,6 +735,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: 12,
@@ -809,21 +746,29 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  goal.title,
-                  style: GoogleFonts.baloo2(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Expanded(
+                  child: AutoSizeText(
+                    goal.title,
+                    style: GoogleFonts.baloo2(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    minFontSize: 12,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  priorityLabel,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    color: dotColor,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    priorityLabel,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      color: dotColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
