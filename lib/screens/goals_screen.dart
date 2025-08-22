@@ -588,8 +588,17 @@ class _GoalsScreenState extends State<GoalsScreen> {
           onReorder: (oldIndex, newIndex) {
             setState(() {
               if (newIndex > oldIndex) newIndex--;
-              final item = termGoals.removeAt(oldIndex);
-              termGoals.insert(newIndex, item);
+              final termGoalIds = termGoals.map((g) => g.id).toList();
+              final oldGoalId = termGoalIds[oldIndex];
+              final newGoalId = termGoalIds[newIndex];
+              final oldIndexInGoals = _goals.indexWhere(
+                (g) => g.id == oldGoalId,
+              );
+              final newIndexInGoals = _goals.indexWhere(
+                (g) => g.id == newGoalId,
+              );
+              final item = _goals.removeAt(oldIndexInGoals);
+              _goals.insert(newIndexInGoals, item);
             });
           },
           children: [
